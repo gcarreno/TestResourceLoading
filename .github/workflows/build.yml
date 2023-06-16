@@ -1,0 +1,106 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ "*" ]
+    paths-ignore: [ "README.md", "history.md", "release-notes.md" ]
+
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build and/or Test
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      matrix:
+        operating-system: [ ubuntu-latest, windows-latest, macos-latest ]
+        lazarus-versions: [ stable, 2.0.12, 2.0.10 ]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Install Lazarus
+      uses: gcarreno/setup-lazarus@v3.2.7
+      with:
+        lazarus-version: ${{ matrix.lazarus-versions }}
+
+    - name: Build the Main App (Windows)
+      if: ${{ matrix.operating-system == 'windows-latest' }}
+      run: lazbuild -B --bm=Release "src/TestResourceLoad.lpi"
+
+    - name: Build the Main App GTK2 (Ubuntu)
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      run: |
+        lazbuild -B --bm=Release "src/TestResourceLoad.lpi"
+        mv bin/TestResourceLoad bin/TestResourceLoad-gtk2
+
+    - name: Build the Main App Qt5 (Ubuntu)
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      run: |
+        sudo apt update
+        sudo apt install libqt5pas-dev -y
+        lazbuild -B --bm=Release --ws=qt5 "src/TestResourceLoad.lpi"
+        mv bin/TestResourceLoad bin/TestResourceLoad-qt5
+
+    - name: Build the Main App (macOS)
+      if: ${{ matrix.operating-system == 'macos-latest' }}
+      run: lazbuild -B --bm=Release --ws=cocoa "src/TestResourceLoad.lpi"
+
+    - name: Upload binary (Windows)
+      if: ${{ (matrix.operating-system == 'windows-latest')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: TestResourceLoad
+        path: bin/TestResourceLoad.exe
+
+    - name: Upload binary (Ubuntu)
+      if: ${{ (matrix.operating-system == 'ubuntu-latest')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: TestResourceLoad
+        path: bin/TestResourceLoad-*
+
+  package-release:
+    if: contains(github.ref, '/tags/')
+
+    name: Package and create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+    - name: Download the Release binary
+      uses: actions/download-artifact@v3
+
+    - name: List files
+      run: ls -alF TestResourceLoad
+
+    - name: Create release files
+      run: |
+        cd TestResourceLoad
+        chmod +x TestResourceLoad-*
+        zip -r TestResourceLoad-${{ steps.vars.outputs.tag }}-x86_64-win64.zip TestResourceLoad.exe
+        tar -zcvf TestResourceLoad-GTK2-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-gtk2
+        tar -zcvf TestResourceLoad-Qt5-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-qt5
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: TestResourceLoad ${{ steps.vars.outputs.tag }}
+        body_path: release-notes.md
+        files: |
+          TestResourceLoad/*.tar.gz
+          TestResourceLoad/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

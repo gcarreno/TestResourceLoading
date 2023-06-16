@@ -18,6 +18,7 @@ jobs:
       matrix:
         operating-system: [ ubuntu-latest, windows-latest, macos-latest ]
         lazarus-versions: [ stable, 2.0.12, 2.0.10 ]
+        with-cache: false
 
     steps:
     - name: Checkout Repository

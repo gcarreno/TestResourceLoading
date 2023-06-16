@@ -96,7 +96,7 @@ jobs:
         tar -zcvf TestResourceLoad-GTK2-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-gtk2
         tar -zcvf TestResourceLoad-Qt5-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-qt5
     - name: Create GitHub release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v0.1.15
       with:
         name: TestResourceLoad ${{ steps.vars.outputs.tag }}
         body_path: release-notes.md

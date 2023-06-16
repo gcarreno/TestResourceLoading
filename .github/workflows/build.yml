@@ -51,7 +51,9 @@ jobs:
 
     - name: Build the Main App (macOS)
       if: ${{ matrix.operating-system == 'macos-latest' }}
-      run: lazbuild -B --bm=Release --ws=cocoa "src/TestResourceLoad.lpi"
+      run: |
+        lazbuild -B --bm=Release --ws=cocoa "src/TestResourceLoad.lpi"
+        mv bin/TestResourceLoad bin/TestResourceLoad-macOS
 
     - name: Upload binary (Windows)
       if: ${{ (matrix.operating-system == 'windows-latest')  &&  (matrix.lazarus-versions == 'stable') }}
@@ -66,6 +68,13 @@ jobs:
       with:
         name: TestResourceLoad
         path: bin/TestResourceLoad-*
+
+    - name: Upload binary (macOS)
+      if: ${{ (matrix.operating-system == 'macos-latest')  &&  (matrix.lazarus-versions == 'stable') }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: TestResourceLoad
+        path: bin/TestResourceLoad-macOS
 
   package-release:
     if: contains(github.ref, '/tags/')
@@ -97,6 +106,7 @@ jobs:
         zip -r TestResourceLoad-${{ steps.vars.outputs.tag }}-x86_64-win64.zip TestResourceLoad.exe
         tar -zcvf TestResourceLoad-GTK2-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-gtk2
         tar -zcvf TestResourceLoad-Qt5-${{ steps.vars.outputs.tag }}-x86_64-linux.tar.gz TestResourceLoad-qt5
+        zip -r TestResourceLoad-macOS-${{ steps.vars.outputs.tag }}-x86_64-macos.zip TestResourceLoad-macOS
     - name: Create GitHub release
       uses: softprops/action-gh-release@v0.1.15
       with:

@@ -72,6 +72,8 @@ jobs:
 
     name: Package and create GitHub Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: build
 
     steps:
@@ -103,7 +105,5 @@ jobs:
         files: |
           TestResourceLoad/*.tar.gz
           TestResourceLoad/*.zip
-      permissions:
-        contents: write
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

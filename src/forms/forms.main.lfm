@@ -1,0 +1,42 @@
+object frmMain: TfrmMain
+  Left = 332
+  Height = 412
+  Top = 250
+  Width = 581
+  Caption = 'Test Resource Loading'
+  ClientHeight = 412
+  ClientWidth = 581
+  LCLVersion = '2.3.0.0'
+  object panMemo: TPanel
+    Left = 0
+    Height = 33
+    Top = 379
+    Width = 581
+    Align = alBottom
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 33
+    ClientWidth = 581
+    TabOrder = 0
+    object btnLoad: TButton
+      Left = 0
+      Height = 33
+      Top = 0
+      Width = 80
+      Align = alLeft
+      AutoSize = True
+      Caption = 'Load'
+      Constraints.MinWidth = 80
+      OnClick = btnLoadClick
+      TabOrder = 0
+    end
+  end
+  object memMain: TMemo
+    Left = 0
+    Height = 379
+    Top = 0
+    Width = 581
+    Align = alClient
+    TabOrder = 1
+  end
+end

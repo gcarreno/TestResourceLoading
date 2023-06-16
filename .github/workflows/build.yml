@@ -103,5 +103,7 @@ jobs:
         files: |
           TestResourceLoad/*.tar.gz
           TestResourceLoad/*.zip
+        permissions:
+          content: write
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
